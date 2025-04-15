@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="static/favicon.ico">
+    <link rel="icon" href="static/favicon.ico">
+    <title>Управление заказами</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            /* background-image: url('/static/background/Enova_WhiteLogo.jpg'); */
+            background-position: center center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            font-family: 'Roboto', sans-serif;
+            color: aliceblue;
+            margin: 0;
+            padding: 40px;
+            height: 100%;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            font-size: 20px;
+        }
+
+
+        .column {
+            width: 48%;
+            font-size: 18px;
+            line-height: 8px;
+            padding: 12px 18px;
+            border-radius: 10px;
+            background: #0b3d3a;
+        }
+
+        .col {
+            width: 48%;
+        }
+
+        .order {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .order button {
+            position: absolute;
+            top: 5px;
+        }
+
+        .order .accept {
+            right: 5px;
+        }
+
+        .order .close {
+            left: 5px;
+        }
+
+        .order .move {
+            right: 50px;
+        }
+
+        table,
+        tr {
+            padding: 0;
+            border: none;
+            border-spacing: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li[id^=orderWaitList_] {
+            border-bottom: 2px solid #c4c4c4;
+        }
+
+        li[id^=orderInProgress_] {
+            border-bottom: 2px solid #c4c4c4;
+        }
+
+        li[id^=positionInProgress_] {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-left: 20px;
+            min-height: 75px;
+        }
+
+        li[id^=orderWaitList_]>div,
+        li[id^=orderInProgress_]>div {
+            display: flex;
+            align-items: center;
+            background: #f1f1f1;
+            padding: 12px;
+            margin-top: 20px;
+        }
+
+        li[id^=positionWaitList_] {
+            display: flex;
+            align-items: center;
+            min-height: 50px;
+            margin-left: 20px;
+        }
+
+        li button {
+            padding: 16px 20px;
+            background-color: #0b3d3a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            margin-left: 10px;
+            font-size: 20px;
+            /* max-width: 100px; */
+        }
+
+        button[id^=orderRemove_] {
+            background-color: rgb(255, 90, 90);
+            margin-left: auto;
+        }
+
+        button[id^=positionRemove_] {
+            background-color: #f1f1f1;
+            color: black;
+            margin-left: auto;
+        }
+
+        button[id^=positionDone_] {
+            margin-left: auto;
+        }
+
+        button[id^=orderDone_] {
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="column">
+            <h2>В ожидании</h2>
+        </div>
+        <div class="column">
+            <h2>В работе</h2>
+        </div>
+    </div>
+    <div class="container">
+        <div class="col">
+            <ul id="waitList" style="color: #0b3d3a; width: 100%;"></ul>
+        </div>
+        <div class="col">
+            <ul id="inProgresslist" style="color: #0b3d3a; width: 100%;"></ul>
+        </div>
+    </div>
+
+    <script>
+
+        let socket;
+
+        const waitList = document.getElementById("waitList");
+        const inProgresslist = document.getElementById("inProgresslist");
+        const audio = new Audio("/static/new_order.mp3");
+
+        connectToWS();
+
+        async function removeOrder(elementId) {
+
+            // order_1_0
+            var arrayOfStrings = elementId.split("_");
+
+            let data = {
+                action: 'remove',
+                orderNumber: arrayOfStrings[1],
+                position: arrayOfStrings[2]
+            };
+
+            let json = JSON.stringify(data);
+
+            socket.send(json);
+        }
+
+        async function moveToInProgress(elementId) {
+
+            // order_1_0
+            var arrayOfStrings = elementId.split("_");
+
+            let data = {
+                action: 'moveToInProgress',
+                orderNumber: arrayOfStrings[1],
+                position: arrayOfStrings[2]
+            };
+
+            let json = JSON.stringify(data);
+
+            socket.send(json);
+        }
+
+        async function doneOrder(elementId) {
+
+            // order_1_0
+            var arrayOfStrings = elementId.split("_");
+
+            let data = {
+                action: 'done',
+                orderNumber: arrayOfStrings[1],
+                position: arrayOfStrings[2]
+            };
+
+            let json = JSON.stringify(data);
+
+            socket.send(json);
+        }
+
+        function addToWaitList(order) {
+
+            var orderElement = document.createElement("li");
+            orderElement.id = "orderWaitList_" + order["orderNumber"] + "_0";
+
+            //orderElement.class="column";
+
+            var orderDivElement = document.createElement("div");
+
+            var orderInProgressElement = document.createElement("button");
+            orderInProgressElement.id = "orderMoveInProgress_" + order["orderNumber"] + "_0";
+            orderInProgressElement.textContent = "В работу";
+            orderInProgressElement.addEventListener('click', function () {
+                const id = orderInProgressElement.id;
+                moveToInProgress(id);
+            });
+
+            var orderRemoveElement = document.createElement("button");
+            orderRemoveElement.id = "orderRemove_" + order["orderNumber"] + "_0";
+            orderRemoveElement.textContent = "Отменить";
+            orderRemoveElement.addEventListener('click', function () {
+                const id = orderRemoveElement.id;
+                removeOrder(id);
+            });
+
+            orderDivElement.appendChild(document.createTextNode(`Заказ №${order["orderNumber"]}`));
+            orderDivElement.appendChild(orderRemoveElement);
+            orderDivElement.appendChild(orderInProgressElement);
+
+            orderElement.appendChild(orderDivElement);
+
+            //order.className = "ready";
+
+            var positionList = document.createElement("ul");
+            positionList.id = "order_" + order["orderNumber"] + "_positionList";
+
+            for (const position of order["positions"]) {
+
+                var positionElement = document.createElement("li");
+                positionElement.id = "positionWaitList_" + order["orderNumber"] + "_" + position["positionNumber"];
+                positionElement.style.padding = '10px';
+                //position.className = "ready";
+
+                // var positionInProgressElement = document.createElement("button");
+                // positionInProgressElement.id = "positionMoveInProgress_" + order["orderNumber"] + "_" + position["positionNumber"];
+                // positionInProgressElement.textContent = "В работу";
+                // positionInProgressElement.addEventListener('click', function () {
+                //     moveToInProgress(this.id);
+                // });
+
+                var positionRemoveElement = document.createElement("button");
+                positionRemoveElement.id = "positionRemove_" + order["orderNumber"] + "_" + position["positionNumber"];
+                positionRemoveElement.textContent = "Отменить";
+                positionRemoveElement.addEventListener('click', function () {
+                    const id = positionRemoveElement.id;
+                    removeOrder(id);
+                });
+
+                positionElement.appendChild(document.createTextNode(position["positionName"]));
+                positionElement.appendChild(positionRemoveElement);
+                // positionElement.appendChild(positionInProgressElement);
+
+                positionList.appendChild(positionElement);
+
+            }
+
+            orderElement.appendChild(positionList);
+
+            waitList.appendChild(orderElement);
+
+        }
+
+
+        function addToinProgresslist(order) {
+
+            var orderElement = document.createElement("li");
+            orderElement.id = "orderInProgress_" + order["orderNumber"] + "_0";
+
+            //orderElement.class="column";
+
+            var orderDivElement = document.createElement("div");
+
+            var orderInProgressElement = document.createElement("button");
+            orderInProgressElement.id = "orderDone_" + order["orderNumber"] + "_0";
+            orderInProgressElement.textContent = "Готов";
+            orderInProgressElement.addEventListener('click', function () {
+                const id = orderInProgressElement.id;
+                doneOrder(id);
+            });
+
+            orderDivElement.appendChild(document.createTextNode(`Заказ №${order["orderNumber"]}`));
+            orderDivElement.appendChild(orderInProgressElement);
+
+            orderElement.appendChild(orderDivElement);
+
+            //order.className = "ready";
+
+            var positionList = document.createElement("ul");
+            positionList.id = "order_" + order["orderNumber"] + "_positionList";
+
+            for (const position of order["positions"]) {
+
+                var positionElement = document.createElement("li");
+                positionElement.id = "positionInProgress_" + order["orderNumber"] + "_" + position["positionNumber"];
+                //position.className = "ready";
+
+                // var positionInProgressElement = document.createElement("button");
+                // var id = "positionDone_" + order["orderNumber"] + "_" + position["positionNumber"];
+                // positionInProgressElement.id = id;
+                // positionInProgressElement.textContent = "Готов";
+                // positionInProgressElement.onclick = event => {
+                //     doneOrder(id);
+                // };
+
+                positionElement.appendChild(document.createTextNode(position["positionName"]));
+                // positionElement.appendChild(positionInProgressElement);
+
+                positionList.appendChild(positionElement);
+
+            }
+
+            orderElement.appendChild(positionList);
+
+            inProgresslist.appendChild(orderElement);
+
+        }
+
+        function connectToWS() {
+            const connect = document.getElementById("connect");
+
+            socket = new WebSocket("ws://" + window.location.hostname + ":8000/ws");
+            socket.onmessage = function (event) {
+                var json = JSON.parse(event.data);
+
+                // чистим листы
+                while (waitList.firstChild)
+                    waitList.firstChild.remove();
+                while (inProgresslist.firstChild)
+                    inProgresslist.firstChild.remove();
+
+                // заполняем данными
+                for (const order of json["waitlistOrders"]) {
+                    addToWaitList(order);
+                }
+                for (const order of json["inProgresslistOrders"]) {
+                    addToinProgresslist(order)
+                }
+
+                if (json["haveNewPosition"] == true) {
+                    audio.play();
+                }
+
+            }
+        };
+
+    </script>
+
+</body>
+
+</html>

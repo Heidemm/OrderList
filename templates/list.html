@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="static/favicon.ico">
+    <link rel="icon" href="static/favicon.ico">
+    <title>Статусы заказов</title>
+    <!-- <link rel="stylesheet" href="/static/style.css"> -->
+    <link rel="stylesheet" href="/static/list.css">
+    <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+    <script type="text/javascript" src="/static/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+</head>
+
+<body>
+    <!-- <header></header> -->
+    <div id="splash-screen">
+        <div class="content">
+            <button id="enter-btn">Экран заказов</button>
+            <button id="orders_page">Панель управления заказами</button>
+        </div>
+        <script>
+            document.getElementById('orders_page').onclick = function () {
+                window.location.href = 'orders';
+            };
+            document.getElementById('enter-btn').addEventListener('click', function () {
+                // Скрываем заставку
+                document.getElementById('splash-screen').style.display = 'none';
+
+                // Показываем основной контент
+                document.getElementById('main-content').style.display = 'block';
+
+                // Возвращаем прокрутку страницы
+                document.body.style.overflowY = 'auto';
+            });</script>
+    </div>
+    <div id="main-content" style="display: none; height: 100%;">
+        <main>
+            <div class="container">
+                <div class="in-progress">
+                    <div class="title">Готовятся</div>
+                    <ul id="waitlist" class="numbers">
+                        <!-- <div class="item">017</div>
+                    <div class="item">017</div>
+                    <div class="item">017</div> -->
+                    </ul>
+                </div>
+                <div class="done">
+                    <div class="title">Готовы</div>
+                    <ul id="readylist" class="numbers">
+                        <!-- <div class="item">017</div>
+                    <div class="item">017</div>
+                    <div class="item">017</div> -->
+                    </ul>
+
+                </div>
+                <div class="slider splide">
+                    <div class="splide__track">
+                        <ul id="splideList" class="splide__list">
+                            <!--<li class="slide splide__slide">
+                                <img src="/static/pictures/pic1.jpg" alt="pic1">
+                            </li> -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <footer>
+                <div class="logo">
+                    <img src="/static/logo.webp">
+                </div>
+                <div class="clock">
+                    <span class="date" id="date"> </span>
+                    <span class="time" id="hours"> </span>
+                    <span class="time" id="point">:</span>
+                    <span class="time" id="min"> </span>
+                </div>
+            </footer>
+        </main>
+
+        <div id="connectokno" class="connect-okno">
+            <button type="button" onclick="connectToServer()">Подключиться</button>
+        </div>
+
+        <div id="okno" class="ready-modal">
+            <div id="orderokno" class="ready-text">123</div>
+        </div>
+
+        <script src="/static/list.js"></script>
+
+        <script>
+            connectToServer();
+        </script>
+    </div>
+</body>
+
+</html>

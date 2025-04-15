@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Статусы заказов</title>
+    <link rel="shortcut icon" href="static/favicon.ico">
+    <link rel="icon" href="static/favicon.ico">
+    <link rel="stylesheet" href="/static/style.css">
+    <script type="text/javascript" src="/static/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+
+    <div id="okno" class="okno">
+        <div style="font-size: 3ex; text-align: center; height: 24%;"></div>
+        <div id="orderokno" style="height: 85%; text-align: center; font-size: 20ex;"> </div>
+    </div>
+
+   <div id="connectokno" class="connect-okno">
+        <button type="button" onclick="connectToServer()" style="width: 100%; height: 100%; font-size: 6vw;">Подключиться</button>
+    </div>
+
+    <div style="height: 100%;">
+        <div class="main-block" style="width: 100%; max-width: 1920px; height: 100%; max-height: 1080px;">
+            <div class="main-background"> </div>
+            <div style="width: 60%; display: block; overflow-y: hidden;">
+                <!-- Это фон шапки-->
+                <div class="top-background"> </div>
+                <!-- Это данные-->
+                <div style="display: flex; align-items: end; height: 6%;">
+                    <div class="wait-name">Готовятся</div>
+                    <div class="ready-name">Готовые</div>
+                </div>
+                <table style="height: 100%; width: 100%;">
+                    <tr style="vertical-align: baseline;">
+                        <td style="width: 50%;padding-top: 30px;padding-right: 100px;">
+                            <ul id="waitlist"></ul>
+                        </td>
+                        <td style="width: 50%;">
+                            <ul id="readylist"></ul>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="slider_container";><!-- Рекламный блок -->
+                    <div class="right-background">
+                    <div class="slider">
+                        <div class="slides">
+                            <div class="slide"><img src="/static/pictures/pic1.jpg" alt="Image 1" style="width:100%"></div>
+                            <div class="slide"><img src="/static/pictures/pic2.jpg" alt="Image 2" style="width:100%"></div>
+                            <div class="slide"><img src="/static/pictures/pic3.jpg" alt="Image 3" style="width:100%"></div>
+                        </div>
+                        <!-- <button class="prev" onclick="moveSlide(-1)">&#10094;</button>
+                        <button class="next" onclick="moveSlide(1)">&#10095;</button> -->
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+                    <!-- SLIDER SCRIP -->
+
+                    <script>
+                        let currentSlide = 0;
+                        let slideInterval;
+                    
+                        function showSlide(index) {
+                            const slides = document.querySelectorAll('.slide');
+                            if (index >= slides.length) {
+                                currentSlide = 0;
+                            } else if (index < 0) {
+                                currentSlide = slides.length - 1;
+                            } else {
+                                currentSlide = index;
+                            }
+                            const offset = -currentSlide * 100;
+                            const slidesContainer = document.querySelector('.slides');
+                            slidesContainer.style.transform = `translateX(${offset}%)`;
+                        }
+                    
+                        function moveSlide(step) {
+                            clearInterval(slideInterval); // Сбрасываем интервал при ручном переключении
+                            showSlide(currentSlide + step);
+                            slideInterval = setInterval(() => moveSlide(1), 10000); // Перезапускаем интервал
+                        }
+                    
+                        // Инициализация
+                        showSlide(currentSlide);
+                        slideInterval = setInterval(() => moveSlide(1), 3000); // Устанавливаем интервал 3 секунды
+                    </script>
+
+
+        <div class="bottom">
+            <img src="/static/logo.webp">
+            <div class="clock">
+
+                <div style="display: flex; align-items: end; height: 100%;">
+                    <span class="date" id="date"> </span>
+                </div>
+
+                <div style="display: flex; align-items: end; height: 100%; margin-left: 10px; margin-right: 10px;">
+                    <span class="time" id="hours"> </span>
+                    <span class="time" id="point">:</span>
+                    <span class="time" id="min"> </span>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        let socket;
+
+        const readylist = document.getElementById("readylist");
+        const waitlist = document.getElementById("waitlist");
+        const pictures = document.getElementById("splideList");
+        const okno = document.getElementById("okno");
+        var orderOkno = document.getElementById("orderokno");
+
+        function addToReadyList(orderNumber) {
+            var order = document.createElement("li");
+            order.appendChild(document.createTextNode(orderNumber));
+            order.className = "ready";
+            readylist.appendChild(order);
+        }
+
+        function addToWaitList(orderNumber) {
+            var order = document.createElement("li");
+            order.appendChild(document.createTextNode(orderNumber));
+            order.className = "wait";
+            waitlist.appendChild(order);
+        }
+
+        function connectToWS() {
+            const connect = document.getElementById("connect");
+            //connect.style.visibility = 'hidden'; 
+            // socket = new WebSocket(`ws://{{hostname}}:{{port}}/ws`);
+            socket = new WebSocket(`ws://localhost:8000/ws`);
+            socket.onmessage = function (event) {
+                while (readylist.firstChild)
+                    readylist.firstChild.remove();
+                while (waitlist.firstChild)
+                    waitlist.firstChild.remove();
+
+                var json = JSON.parse(event.data);
+                for (const orderNumber of json["readylist"]) {
+                    addToReadyList(orderNumber["orderNumber"]);
+                }
+                for (const orderNumber of json["waitlistOrders"]) {
+                    addToWaitList(orderNumber["orderNumber"])
+                }
+                for (const orderNumber of json["inProgresslistOrders"]) {
+                    addToWaitList(orderNumber["orderNumber"])
+                }
+
+                if (json["pictures"].length > 0) {
+                    while (pictures.firstChild)
+                        pictures.firstChild.remove();
+                    var image = document.createElement("li");
+                    var img = document.createElement("img");
+                    img.src = "http://pvbk.spb.ru/inc/slider/imgs/no-image.gif";
+                    img.alt = "screen";
+                    image.appendChild(img);
+                    pictures.appendChild(image);
+
+                    for (const picture of json["pictures"]) {
+                        var image = document.createElement("li");
+                        var img = document.createElement("img");
+                        img.src = picture.src;
+                        img.alt = picture.alt;
+                        image.appendChild(img);
+                        image.className = "sim-slider-element";
+                        pictures.appendChild(image);
+                    }
+
+                    new Sim();
+                }
+
+                if (json["freshlist"].length > 0) {
+                    var audio = new Audio("/static/order_ready.mp3");
+                    audio.play();
+                }
+                    
+                for (const orderNumber of json["freshlist"]) {
+                    orderOkno.textContent = orderNumber;
+                    jQuery("#okno").fadeIn(300).delay(3000).fadeOut(300);
+                }
+
+            }
+        };
+
+        function connectToServer() {
+            connectToWS();    
+            jQuery("#connectokno").fadeOut();
+        };
+
+        $(document).ready(function () {
+            //connectToWS();
+            // Создаем две переменные с названиями месяцев и названиями дней.
+            var monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+            var dayNames = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"]
+
+            // Создаем объект newDate()
+            var newDate = new Date();
+            // "Достаем" текущую дату из объекта Date
+            newDate.setDate(newDate.getDate());
+            // Получаем день недели, день, месяц и год
+            $('#date').html(dayNames[newDate.getDay()] + " " + newDate.getDate() + ' ' + monthNames[newDate.getMonth()] + ' ' + newDate.getFullYear());
+
+            //setInterval( function() {
+            // Создаем объект newDate() и показывает секунды
+            //var seconds = new Date().getSeconds();
+            // Добавляем ноль в начало цифры, которые до 10
+            //$("#sec").html(( seconds < 10 ? "0" : "" ) + seconds);
+            //},1000);
+
+            setInterval(function () {
+                // Создаем объект newDate() и показывает минуты
+                var minutes = new Date().getMinutes();
+                // Добавляем ноль в начало цифры, которые до 10
+                $("#min").html((minutes < 10 ? "0" : "") + minutes);
+            }, 1000);
+
+            setInterval(function () {
+                // Создаем объект newDate() и показывает часы
+                var hours = new Date().getHours();
+                // Добавляем ноль в начало цифры, которые до 10
+                $("#hours").html((hours < 10 ? "0" : "") + hours);
+            }, 1000);
+        });
+
+    </script>
+
+
+</body>
+
+</html>

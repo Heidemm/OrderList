@@ -1,0 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+html {
+  font-size: calc(10px + 2 * (100vw - 1024px) / 336);
+  font-family: 'Roboto', sans-serif;
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-size: 1.8rem;
+}
+
+        /* SPLASH SCREEN */
+
+/* styles.css */
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+#splash-screen {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  height: 100vh;
+  background-image: url(/static/background/Enova_Logo.jpg);
+  background-size: cover;
+  /* color: white; */
+}
+
+.content {
+  text-align: right;
+}
+
+.content button {
+  margin-right: 4rem;
+  margin-top: 10rem;
+  padding: 1rem 2rem;
+  font-size: 1.6rem;
+  cursor: pointer;
+  background-color: #4dc194;
+  color: white;
+  border: none;
+  border-radius: 1rem;
+}
+
+.content button:hover {
+  background-color: #0b3d3a;
+  border: solid 0.1rem;
+  border-color: #4dc194;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+_:default:not(:root:root),
+html {
+  animation: webkitfix 1s forwards infinite;
+}
+
+
+@-webkit-keyframes webkitfix {
+  100% {
+    z-index: auto;
+  }
+}
+
+img {
+  max-width: 100%;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  height: 94%;
+}
+
+/* ---- MAIN BLOCKS ----*/
+.in-progress {
+  flex: 1;
+}
+
+.done {
+  flex: 1;
+}
+
+.slider {
+  flex: 1;
+}
+.slider .slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slider .slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.slider .splide__track {
+  overflow: hidden;
+  height: 100%;
+  border-radius: 1rem;
+}
+
+/*----- OTHERS -----*/
+.title {
+  font-size: 2.4rem;
+  line-height: 3rem;
+
+  padding: 1.2rem 2rem;
+  border-radius: 1rem;
+  color: white;
+}
+
+.in-progress .title {
+  background-color: #5a5a5a;
+}
+.in-progress .numbers li {
+  color: #5a5a5a;
+}
+.done .title {
+  background-color: #0b3d3a;
+}
+.done .numbers li {
+  color: #0b3d3a;
+  font-size: 8rem;
+}
+
+.numbers {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  max-height: 90vh;
+  padding: 1rem;
+  margin: 0;
+  list-style: none;
+}
+.numbers li {
+  font-size: 6rem;
+  font-weight: 800;
+}
+
+/* Модалка заказ готов */
+.ready-modal {
+  z-index: 1;
+  display: none;
+  position: fixed;
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.ready-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid darkgreen;
+  border-radius: 2rem;
+  background-color: white;
+  color: #0b3d3a;
+  width: 60rem;
+  height: 40rem;
+  font-size: 20rem;
+  font-weight: 800;
+}
+
+/* Модалка подключиться */
+.connect-okno {
+  z-index: -2;
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,.5);
+}
+
+.connect-okno button {
+  width: 40rem;
+  height: 20rem;
+  border: 2px solid darkgreen;
+  border-radius: 2rem;
+  background-color: white;
+  font-size: 4rem;
+  padding: 0 0 1rem 0;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.connect-okno button:hover {
+  background-color: rgb(201, 238, 201);
+}
+
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 6%;
+  padding: 0.2rem 2rem 0 2rem;
+  width: 100%;
+  background-color: #003433;
+  color: white;
+}
+footer .logo {
+  width: 14rem;
+}
+footer .clock {
+  display: flex;
+  font-size: 1.4rem;
+}
+footer .date {
+  margin-right: 1rem;
+}
